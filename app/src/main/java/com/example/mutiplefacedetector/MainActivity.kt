@@ -3,14 +3,16 @@ package com.example.mutiplefacedetector
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.Switch
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.mutiplefacedetector.camerax.CameraManager
+import com.google.mlkit.vision.face.Face
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() , OnClickListener{
 
     private lateinit var cameraManager: CameraManager
 
@@ -64,6 +66,7 @@ class MainActivity : AppCompatActivity() {
             this,
             findViewById(R.id.graphicOverlay_finder)
         )
+
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -71,8 +74,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(android.Manifest.permission.CAMERA)
+    }
+
+    override fun onClick(int: Int) {
+        Log.e("TAG", "onClick: ----size is here "+int )
+        val toast = Toast.makeText(applicationContext, "Face Count  --->     "+int.toInt(), Toast.LENGTH_SHORT)
+        toast.show()
     }
 
 }

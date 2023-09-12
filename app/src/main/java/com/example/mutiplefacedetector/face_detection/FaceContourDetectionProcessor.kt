@@ -2,6 +2,7 @@ package com.example.mutiplefacedetector.face_detection
 
 import android.graphics.Rect
 import android.util.Log
+import com.example.mutiplefacedetector.OnClickListener
 import com.example.mutiplefacedetector.camerax.BaseImageAnalyzer
 import com.example.mutiplefacedetector.camerax.GraphicOverlay
 import com.google.android.gms.tasks.Task
@@ -11,8 +12,9 @@ import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import java.io.IOException
 
-class FaceContourDetectionProcessor(private val view: GraphicOverlay) :
-    BaseImageAnalyzer<List<Face>>() {
+class FaceContourDetectionProcessor(private val view: GraphicOverlay) : BaseImageAnalyzer<List<Face>>() {
+
+    var onClickListener : OnClickListener? = null
 
     private val realTimeOpts = FaceDetectorOptions.Builder()
         .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
@@ -46,6 +48,16 @@ class FaceContourDetectionProcessor(private val view: GraphicOverlay) :
             val faceGraphic = FaceContourGraphic(graphicOverlay, it, rect)
             graphicOverlay.add(faceGraphic)
         }
+
+        onClickListener?.onClick(results.size)
+
+        onClickListener = object : OnClickListener {
+            override fun onClick(int: Int) {
+                Log.e(TAG, "onClick: item count"+int )
+            }
+        }
+
+        Log.e(TAG, "onSuccess: face count ---- >   "+results.size )
         graphicOverlay.postInvalidate()
     }
 

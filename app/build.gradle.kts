@@ -18,6 +18,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures{
+        viewBinding = true
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -42,15 +45,28 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("com.google.android.gms:play-services-vision-common:19.1.3")
+    implementation("com.google.android.gms:play-services-vision:20.1.3")
+    implementation("com.google.mlkit:object-detection:17.0.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
 
-
-    implementation("com.google.android.gms:play-services-mlkit-face-detection:16.1.0")
+/*
+    implementation("com.google.android.gms:play-services-mlkit-face-detection:17.1.0")
+    */
     implementation("androidx.camera:camera-camera2:1.2.3")
     implementation("androidx.camera:camera-core:1.2.3")
     implementation("androidx.camera:camera-lifecycle:1.2.3")
     implementation("androidx.camera:camera-view:1.3.0-rc01")
+
+//    implementation("com.google.mlkit:face-detection:16.1.5")
+//    implementation("com.google.mlkit:vision:20.0.0")
+
+
+    implementation("com.google.mlkit:face-detection:16.1.5")
+
+
+
 }
