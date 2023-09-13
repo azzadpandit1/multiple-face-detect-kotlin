@@ -4,6 +4,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.Switch
 import android.widget.Toast
@@ -12,7 +13,7 @@ import androidx.core.content.ContextCompat
 import com.example.mutiplefacedetector.camerax.CameraManager
 import com.google.mlkit.vision.face.Face
 
-class MainActivity : AppCompatActivity() , OnClickListener{
+class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     private lateinit var cameraManager: CameraManager
 
@@ -79,10 +80,11 @@ class MainActivity : AppCompatActivity() , OnClickListener{
         private val REQUIRED_PERMISSIONS = arrayOf(android.Manifest.permission.CAMERA)
     }
 
-    override fun onClick(int: Int) {
-        Log.e("TAG", "onClick: ----size is here "+int )
+    override fun onClick(v: View?) {
+       /* Log.e("TAG", "onClick: ----size is here "+int )
         val toast = Toast.makeText(applicationContext, "Face Count  --->     "+int.toInt(), Toast.LENGTH_SHORT)
-        toast.show()
+        toast.show()    */
+
     }
 
 }
