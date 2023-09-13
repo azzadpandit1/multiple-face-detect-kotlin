@@ -5,32 +5,27 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.hardware.Camera
 import android.os.Bundle
-import android.os.CountDownTimer
-import android.os.Environment
-import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.mlkit.common.MlKitException
+import com.example.mutiplefacedetector.databinding.ActivityFaceAndObjectActvityBinding
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
-import com.google.mlkit.vision.face.FaceDetector
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
-import com.google.mlkit.vision.objects.defaults.PredefinedCategory
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
 import java.io.IOException
 
 
-class FaceAndObjectActvity : AppCompatActivity() , SurfaceHolder.Callback , Camera.PictureCallback{
-    private lateinit var surfaceView: SurfaceView
+class FaceAndObjectActvity : AppCompatActivity(), SurfaceHolder.Callback, Camera.PictureCallback {
+    private val binding by lazy { ActivityFaceAndObjectActvityBinding.inflate(layoutInflater) }
+
+    var isDetectedObject = false
+
+    //    private lateinit var surfaceView: SurfaceView
     private lateinit var surfaceHolder: SurfaceHolder
 
     private val requiredPermissions = arrayOf(
@@ -43,9 +38,9 @@ class FaceAndObjectActvity : AppCompatActivity() , SurfaceHolder.Callback , Came
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_face_and_object_actvity)
-        surfaceView = findViewById(R.id.surfaceView)
-        surfaceHolder = surfaceView.holder
+        setContentView(binding.root)
+
+        surfaceHolder = binding.surfaceView.holder
         surfaceHolder.addCallback(this)
 
         // Check and request necessary permissions
@@ -60,6 +55,7 @@ class FaceAndObjectActvity : AppCompatActivity() , SurfaceHolder.Callback , Came
         }
 
     }
+
     private fun captureImage() {
         if (camera != null) {
             camera!!.setDisplayOrientation(90)
@@ -150,32 +146,31 @@ class FaceAndObjectActvity : AppCompatActivity() , SurfaceHolder.Callback , Came
 
         var bitmapOfimage = bytes.toBitmap()
 
-//        detectFaces(bitmapOfimage)  // Done Code
 
-        ObjectDetectio(bitmapOfimage)
+        objectDetectionInBitmap(bitmapOfimage)
 
-       /* val outStream: FileOutputStream
-        try {
-            val fileName = "TUTORIALWING_" + System.currentTimeMillis() + ".jpg"
-            val file = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                fileName
-            )
+        faceDetectionInBitmap(bitmapOfimage)  // Done Code
 
-            outStream = FileOutputStream(file)
-            outStream.write(bytes)
-            outStream.close()
-            Toast.makeText(this@FaceAndObjectActvity, "Picture Saved: $fileName", Toast.LENGTH_LONG).show()
-        } catch (e: FileNotFoundException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }*/
+        /* val outStream: FileOutputStream
+         try {
+             val fileName = "TUTORIALWING_" + System.currentTimeMillis() + ".jpg"
+             val file = File(
+                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                 fileName
+             )
+
+             outStream = FileOutputStream(file)
+             outStream.write(bytes)
+             outStream.close()
+             Toast.makeText(this@FaceAndObjectActvity, "Picture Saved: $fileName", Toast.LENGTH_LONG).show()
+         } catch (e: FileNotFoundException) {
+             e.printStackTrace()
+         } catch (e: IOException) {
+             e.printStackTrace()
+         }*/
     }
 
-    private fun ObjectDetectio(bitmap: Bitmap) {
-
-
+    private fun objectDetectionInBitmap(bitmap: Bitmap) {
         // Create an object detector options instance
         val options = ObjectDetectorOptions.Builder()
             .setDetectorMode(ObjectDetectorOptionsBase.SINGLE_IMAGE_MODE)
@@ -186,7 +181,7 @@ class FaceAndObjectActvity : AppCompatActivity() , SurfaceHolder.Callback , Came
         // Create an object detector using the options
         val objectDetector = ObjectDetection.getClient(options)
         // Create an input image from the bitmap
-        val image = InputImage.fromBitmap(bitmap, 0)
+        val image = InputImage.fromBitmap(bitmap, binding.root.display.rotation)
         // Process the image and detect objects
         objectDetector.process(image)
             .addOnSuccessListener { detectedObjects ->
@@ -195,21 +190,22 @@ class FaceAndObjectActvity : AppCompatActivity() , SurfaceHolder.Callback , Came
                     val boundingBox = detectedObject.boundingBox
                     val labels = detectedObject.labels
                     // Process the bounding box and labels
-
                     runOnUiThread {
-                        Toast.makeText(this,"lable  -- > "+detectedObjects.size,Toast.LENGTH_SHORT).show()
+                        binding.textView.text = "lable size" + detectedObjects.size
+//                        Toast.makeText(this,"lable  -- > "+detectedObjects.size,Toast.LENGTH_SHORT).show()
                     }
                 }
             }
             .addOnFailureListener { exception ->
                 // Handle any errors that occur during object detection
+                binding.textView.text = ""
             }
 
 
     }
 
     // Create a function to detect faces in a bitmap image
-    private fun detectFaces(bitmap: Bitmap) {
+    private fun faceDetectionInBitmap(bitmap: Bitmap) {
         // Create a FaceDetectorOptions object to configure the face detector
         val options = FaceDetectorOptions.Builder()
             .setContourMode(FaceDetectorOptions.CONTOUR_MODE_NONE)
@@ -222,7 +218,7 @@ class FaceAndObjectActvity : AppCompatActivity() , SurfaceHolder.Callback , Came
         val faceDetector = FaceDetection.getClient(options)
 
         // Create an InputImage object from the bitmap
-        val inputImage = InputImage.fromBitmap(bitmap,0)
+        val inputImage = InputImage.fromBitmap(bitmap,  binding.root.display.rotation)
 
         // Process the image and detect faces
         faceDetector.process(inputImage)
@@ -232,17 +228,17 @@ class FaceAndObjectActvity : AppCompatActivity() , SurfaceHolder.Callback , Came
                     // Process each face
                     // ...
                     runOnUiThread {
-                        Toast.makeText(this,"total faces"+faces.size,Toast.LENGTH_SHORT).show()
+                        binding.textView.text = "Face size" + faces.size
+//                        Toast.makeText(this,"total faces"+faces.size,Toast.LENGTH_SHORT).show()
                     }
                 }
             }
             .addOnFailureListener { exception ->
                 // Handle any errors
                 // ...
-                runOnUiThread {
-                    Toast.makeText(this,""+exception.printStackTrace(),Toast.LENGTH_SHORT).show()
-                }
+              binding.textView.text = ""
             }
+
     }
 
 
