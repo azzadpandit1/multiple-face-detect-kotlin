@@ -17,7 +17,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.example.mutiplefacedetector.databinding.ActivityRealTimeDetctionBinding
+import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.Frame
+import com.google.android.gms.vision.MultiDetector
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
@@ -26,6 +28,7 @@ import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import java.util.Arrays
 
 
 class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.PreviewCallback {
@@ -99,7 +102,6 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
 
 
         binding.progressHorizontal.isVisible = true
-//        objectDetectionInBitmap(bitmap)
 
         val options = FaceDetectorOptions.Builder()
             .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
@@ -148,18 +150,17 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
                     // Handle any errors
                 }
 
-
-
             objectDetector.process(frame)
                 .addOnSuccessListener { detectedObjects ->
                     // Process the detected objects
+                    // Print all object names
                     for (detectedObject in detectedObjects) {
-                        val boundingBox = detectedObject.boundingBox
-                        val labels = detectedObject.labels
-                        // Process the bounding box and labels
                         runOnUiThread {
-                            binding.textViewObject.text = "Object " + detectedObjects.size
-//                        Toast.makeText(this,"lable  -- > "+detectedObjects.size,Toast.LENGTH_SHORT).show()
+                            val labels = detectedObject.labels
+                            for (label in labels) {
+                                binding.textViewObject.text = label.text
+//                            println(label.text)
+                            }
                         }
                     }
                 }
@@ -167,92 +168,8 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
                     // Handle any errors that occur during object detection
                     binding.textViewObject.text = ""
                 }
-
         }
-
-
-
-
-
     }
 
-    private fun objectDetectionInBitmap(bitmap: Bitmap) {
-        // Create an object detector options instance
-        val options = ObjectDetectorOptions.Builder()
-            .setDetectorMode(ObjectDetectorOptionsBase.SINGLE_IMAGE_MODE)
-            .enableMultipleObjects()
-            .enableClassification()
-            .build()
-
-        // Create an object detector using the options
-        val objectDetector = ObjectDetection.getClient(options)
-        // Create an input image from the bitmap
-        val image = InputImage.fromBitmap(bitmap, binding.root.display.rotation)
-        // Process the image and detect objects
-        objectDetector.process(image)
-            .addOnSuccessListener { detectedObjects ->
-                // Process the detected objects
-                for (detectedObject in detectedObjects) {
-                    val boundingBox = detectedObject.boundingBox
-                    val labels = detectedObject.labels
-                    // Process the bounding box and labels
-                    runOnUiThread {
-                        binding.textViewObject.text = "lable size" + detectedObjects.size
-//                        Toast.makeText(this,"lable  -- > "+detectedObjects.size,Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            .addOnFailureListener { exception ->
-                // Handle any errors that occur during object detection
-                binding.textViewObject.text = ""
-            }
-
-
-    }
-
-    // Create a function to detect faces in a bitmap image
-    private fun faceDetectionInBitmap(bitmap: Bitmap) {
-        // Create a FaceDetectorOptions object to configure the face detector
-        val options = FaceDetectorOptions.Builder()
-            .setContourMode(FaceDetectorOptions.CONTOUR_MODE_NONE)
-            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
-            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
-            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-            .build()
-
-        // Create a FaceDetector using the options
-        val faceDetector = FaceDetection.getClient(options)
-
-        // Create an InputImage object from the bitmap
-        val inputImage = InputImage.fromBitmap(bitmap,  90)
-
-        // Process the image and detect faces
-        faceDetector.process(inputImage)
-            .addOnSuccessListener { faces ->
-                // Handle the detected faces
-                for (face in faces) {
-                   runOnUiThread {
-                       if (faces.size <= 1) {
-                           binding.textViewFaceCount.text = "Face size " + faces.size
-                           binding.textViewFaceCount.setBackgroundColor(Color.GREEN)
-                           binding.progressHorizontal.isVisible = false
-                       } else {
-                           binding.textViewFaceCount.text = "Face size " + faces.size
-                           binding.textViewFaceCount.setBackgroundColor(Color.RED)
-                           binding.progressHorizontal.isVisible = false
-                       }
-                   }
-                }
-            }
-            .addOnFailureListener { exception ->
-                binding.progressHorizontal.isVisible = false
-                binding.textViewFaceCount.text = exception.message
-            }
-            .addOnCanceledListener {
-                binding.progressHorizontal.isVisible = false
-                binding.textViewFaceCount.text = "cancel"
-            }
-
-    }
 
 }
