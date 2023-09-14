@@ -6,21 +6,18 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.ImageFormat
 import android.graphics.Rect
-import android.graphics.RectF
 import android.graphics.YuvImage
 import android.hardware.Camera
 import android.os.Bundle
-import android.util.Log
 import android.view.SurfaceHolder
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.example.mutiplefacedetector.databinding.ActivityRealTimeDetctionBinding
-import com.google.android.material.internal.ContextUtils.getActivity
+import com.google.android.gms.vision.Frame
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
@@ -28,6 +25,7 @@ import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 
 
 class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.PreviewCallback {
@@ -42,6 +40,8 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         context = this
+
+
         surfaceHolder = binding.surfaceView.holder
         surfaceHolder.addCallback(this)
 
@@ -81,11 +81,6 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
         return BitmapFactory.decodeByteArray(this, 0, this.size)
     }
 */
-    fun toBitmap(byteArray: ByteArray): Bitmap {
-        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-    }
-
-
     override fun onPreviewFrame(data: ByteArray?, camera: Camera) {
         // Fixing the NullPointerException
         if (data == null) {
@@ -104,8 +99,76 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
 
 
         binding.progressHorizontal.isVisible = true
-        faceDetectionInBitmap(bitmap)
 //        objectDetectionInBitmap(bitmap)
+
+        val options = FaceDetectorOptions.Builder()
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+            .build()
+
+        val detector = FaceDetection.getClient(options)
+
+
+        val options1 = ObjectDetectorOptions.Builder()
+            .setDetectorMode(ObjectDetectorOptionsBase.SINGLE_IMAGE_MODE)
+            .enableMultipleObjects()
+            .enableClassification()
+            .build()
+
+        // Create an object detector using the options
+        val objectDetector = ObjectDetection.getClient(options1)
+
+
+        if (data!=null){
+            val frame = InputImage.fromByteArray(
+                data,
+                camera.parameters.previewSize.width,
+                camera.parameters.previewSize.height,
+                90,
+                InputImage.IMAGE_FORMAT_NV21
+            )
+            detector.process(frame)
+                .addOnSuccessListener { faces ->
+                    // Process the detected faces
+                    for (face in faces) {
+                        // Access face landmarks, bounding box, etc.
+                        runOnUiThread {
+                            if (faces.size <= 1) {
+                                binding.textViewFaceCount.text = "Face size " + faces.size  +" Display Angel " + binding.root.display.rotation
+                                binding.textViewFaceCount.setBackgroundColor(Color.GREEN)
+                                binding.progressHorizontal.isVisible = false
+                            } else {
+                                binding.textViewFaceCount.text = "Face size " + faces.size  +" Display Angel " + binding.root.display.rotation
+                                binding.textViewFaceCount.setBackgroundColor(Color.RED)
+                                binding.progressHorizontal.isVisible = false
+                            }
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    // Handle any errors
+                }
+
+
+
+            objectDetector.process(frame)
+                .addOnSuccessListener { detectedObjects ->
+                    // Process the detected objects
+                    for (detectedObject in detectedObjects) {
+                        val boundingBox = detectedObject.boundingBox
+                        val labels = detectedObject.labels
+                        // Process the bounding box and labels
+                        runOnUiThread {
+                            binding.textViewObject.text = "Object " + detectedObjects.size
+//                        Toast.makeText(this,"lable  -- > "+detectedObjects.size,Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    // Handle any errors that occur during object detection
+                    binding.textViewObject.text = ""
+                }
+
+        }
 
 
 
@@ -154,7 +217,6 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
             .setContourMode(FaceDetectorOptions.CONTOUR_MODE_NONE)
             .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
             .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
-            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
             .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
             .build()
 
@@ -162,104 +224,33 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
         val faceDetector = FaceDetection.getClient(options)
 
         // Create an InputImage object from the bitmap
-        val inputImage = InputImage.fromBitmap(bitmap,  binding.root.display.rotation)
+        val inputImage = InputImage.fromBitmap(bitmap,  90)
 
         // Process the image and detect faces
         faceDetector.process(inputImage)
             .addOnSuccessListener { faces ->
                 // Handle the detected faces
-
                 for (face in faces) {
-                    this.runOnUiThread(Runnable {
-                        if (faces.size <= 1){
-                            binding.textViewFaceCount.text = "Face size" + faces.size
-                            binding.textViewFaceCount.setBackgroundColor(Color.GREEN)
-                        }else{
-                            binding.textViewFaceCount.text = "Face size" + faces.size
-                            binding.textViewFaceCount.setBackgroundColor(Color.RED)
-                        }
-                        val rectPaint = Paint().apply {
-                        color = Color.RED
-                        style = Paint.Style.STROKE
-                        strokeWidth = 4f
-                    }
-
-                        try {
-                            val rect = RectF(face.boundingBox)
-                            if (surfaceHolder.surface.isValid) {
-                                val canvas = surfaceHolder.lockCanvas()
-                                if (canvas != null) {
-                                    canvas.drawRect(rect, rectPaint)
-                                    surfaceHolder.unlockCanvasAndPost(canvas)
-                                } else {
-                                    // Handle the case where the canvas is null
-                                    Log.e("Canvas Error", "Canvas is null")
-                                    // Add your error handling code here
-                                }
-                            } else {
-                                // Handle the case where the surface view holder is not valid
-                                Log.e("Surface Holder Error", "Surface holder is not valid")
-                                // Add your error handling code here
-                            }
-                        }
-                        catch (e: Exception) {
-                            // Handle the exception here
-                            Log.e("Crash", "An exception occurred: ${e.message}")
-                            // Add your exception handling code here
-                        }
-                    })
-                    /*activity.runOnUiThread(Runnable { //No.2
-                        Toast.makeText(getActivity(), "This is correct way", Toast.LENGTH_SHORT)
-                            .show()
-                    })*/
-                    // Process each face
-                  /*  runOnUiThread {
-
-                        if (faces.size <= 1){
-                            binding.textViewFaceCount.text = "Face size" + faces.size
-                            binding.textViewFaceCount.setBackgroundColor(Color.GREEN)
-                        }else{
-                            binding.textViewFaceCount.text = "Face size" + faces.size
-                            binding.textViewFaceCount.setBackgroundColor(Color.RED)
-                        }
-                        val rectPaint = Paint().apply {
-                            color = Color.RED
-                            style = Paint.Style.STROKE
-                            strokeWidth = 4f
-                        }
-
-                        *//*try {
-                            val rect = RectF(face.boundingBox)
-                            if (surfaceHolder.surface.isValid) {
-                                val canvas = surfaceHolder.lockCanvas()
-                                if (canvas != null) {
-                                    canvas.drawRect(rect, rectPaint)
-                                    surfaceHolder.unlockCanvasAndPost(canvas)
-                                } else {
-                                    // Handle the case where the canvas is null
-                                    Log.e("Canvas Error", "Canvas is null")
-                                    // Add your error handling code here
-                                }
-                            } else {
-                                // Handle the case where the surface view holder is not valid
-                                Log.e("Surface Holder Error", "Surface holder is not valid")
-                                // Add your error handling code here
-                            }
-                        } catch (e: Exception) {
-                            // Handle the exception here
-                            Log.e("Crash", "An exception occurred: ${e.message}")
-                            // Add your exception handling code here
-                        }*//*
-
-
-                        binding.progressHorizontal.isVisible = false
-
-                    }*/
+                   runOnUiThread {
+                       if (faces.size <= 1) {
+                           binding.textViewFaceCount.text = "Face size " + faces.size
+                           binding.textViewFaceCount.setBackgroundColor(Color.GREEN)
+                           binding.progressHorizontal.isVisible = false
+                       } else {
+                           binding.textViewFaceCount.text = "Face size " + faces.size
+                           binding.textViewFaceCount.setBackgroundColor(Color.RED)
+                           binding.progressHorizontal.isVisible = false
+                       }
+                   }
                 }
             }
             .addOnFailureListener { exception ->
                 binding.progressHorizontal.isVisible = false
-                binding.textViewFaceCount.text = exception.stackTraceToString()
+                binding.textViewFaceCount.text = exception.message
+            }
+            .addOnCanceledListener {
+                binding.progressHorizontal.isVisible = false
+                binding.textViewFaceCount.text = "cancel"
             }
 
     }
