@@ -36,6 +36,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
 }
 
 dependencies {
@@ -67,6 +68,10 @@ dependencies {
 
     implementation ("androidx.activity:activity-ktx:1.4.1")
     implementation ("com.google.mlkit:barcode-scanning:17.2.0")
+
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
 
 
