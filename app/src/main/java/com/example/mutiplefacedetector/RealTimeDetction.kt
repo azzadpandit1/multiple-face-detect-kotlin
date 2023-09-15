@@ -42,12 +42,10 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     var context :Context? = null
 
-    var bitmapList = ArrayList<Bitmap>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         context = this
-        bitmapList.clear()
 
 
         surfaceHolder = binding.surfaceView.holder
@@ -67,8 +65,8 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-//        camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT)
         surfaceHolder = holder
+//        camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT)
         camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK)
         camera.setPreviewDisplay(holder)
         camera.setDisplayOrientation(90)
@@ -85,10 +83,6 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
         camera.release()
     }
 
-    /*fun ByteArray.toBitmap(): Bitmap {
-        return BitmapFactory.decodeByteArray(this, 0, this.size)
-    }
-*/
     override fun onPreviewFrame(data: ByteArray?, camera: Camera) {
         // Fixing the NullPointerException
         if (data == null) {
