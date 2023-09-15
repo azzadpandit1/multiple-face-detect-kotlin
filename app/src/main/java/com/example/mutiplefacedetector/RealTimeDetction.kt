@@ -10,6 +10,7 @@ import android.graphics.Rect
 import android.graphics.YuvImage
 import android.hardware.Camera
 import android.os.Bundle
+import android.util.Log
 import android.view.SurfaceHolder
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import com.google.mlkit.vision.face.FaceLandmark
 import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
@@ -103,12 +105,12 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
         val imageBytes = out.toByteArray()
         val lastUpdatedBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
-
         binding.progressHorizontal.isVisible = true
 
         val options = FaceDetectorOptions.Builder()
             .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
             .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
             .enableTracking()
             .build()
 
@@ -162,6 +164,27 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
                                     binding.ivStatus.setImageResource(R.drawable.baseline_done_24)
                                     binding.ivStatus.isVisible = true
 
+                                    val leftEyeOpenProbability = face.leftEyeOpenProbability
+                                    val rightEyeOpenProbability = face.rightEyeOpenProbability
+                                    // Perform actions based on eye status probabilities
+                                    if (leftEyeOpenProbability != null && rightEyeOpenProbability != null) {
+                                        if (leftEyeOpenProbability > 0.5 && rightEyeOpenProbability > 0.5) {
+                                            // Both eyes are open
+                                            // Perform desired actions
+                                            runOnUiThread {
+                                                val toast = Toast.makeText(applicationContext, "Both eyes are open", Toast.LENGTH_LONG)
+                                                toast.show()
+                                            }
+                                        } else {
+                                            // At least one eye is closed
+                                            // Perform desired actions
+                                            runOnUiThread {
+                                                val toast = Toast.makeText(applicationContext, "At least one eye is closed", Toast.LENGTH_LONG)
+                                                toast.show()
+                                            }
+                                        }
+                                    }
+
                                 }
                                 else {
                                     binding.textViewFaceCount.text = "Face size " + faces.size
@@ -209,6 +232,7 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
 
 
     }
+
 
     private fun matchFace(bitmap1:Bitmap,bitmap2:Bitmap){
         // Create a FaceDetectorOptions object with the desired settings
