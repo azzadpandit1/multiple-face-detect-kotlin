@@ -8,7 +8,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+<!--    notification close and open-->
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR"/>
+<!--usb -->
+    <uses-feature android:name="android.hardware.usb.host" />
+    <uses-permission android:name="android.permission.USB_PERMISSION" />
 
     <application
         android:name=".MyApplication"
