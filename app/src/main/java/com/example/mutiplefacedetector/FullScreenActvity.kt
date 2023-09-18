@@ -1,12 +1,15 @@
 package com.example.mutiplefacedetector
 
 import android.annotation.SuppressLint
+import android.app.StatusBarManager
 import android.content.Context
+import android.content.Intent
 import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.mutiplefacedetector.databinding.ActivityFullScreenActvityBinding
@@ -18,20 +21,51 @@ class FullScreenActvity : AppCompatActivity() {
 
     private lateinit var cameraDetector: CameraDetector
 
+    private lateinit var usbManager: UsbManager
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
-        cameraDetector = CameraDetector(usbManager)
+       /* val usbManager = getSystemService(USB_SERVICE) as UsbManager
+        cameraDetector = CameraDetector(usbManager)*/
+
+        usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+
+        val usbCameraList: List<UsbDevice> = getConnectedUsbCameras()
+
+        binding.textViewDevices.setOnClickListener {
+
+            getConnectedUsbCameras()
+
+            binding.textViewDevices.text = "Device : "+usbCameraList.size
+
+        }
+
 
     }
+    private fun getConnectedUsbCameras(): List<UsbDevice> {
+        val usbCameraList: MutableList<UsbDevice> = mutableListOf()
 
+        val usbDevices: HashMap<String, UsbDevice> = usbManager.deviceList
+
+        for (device in usbDevices.values) {
+            if (device.deviceClass == UsbConstants.USB_CLASS_VIDEO) {
+                usbCameraList.add(device)
+            }
+        }
+
+        return usbCameraList
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+
+    }
     override fun onResume() {
         super.onResume()
-        cameraDetector.detectCameras()
-        binding.textViewDevices.text = "Device : "+cameraDetector.detectCameras().size
+        //cameraDetector.detectCameras()
+        //binding.textViewDevices.text = "Device : "+cameraDetector.detectCameras().size
     }
 
     override fun onStop() {
@@ -42,7 +76,6 @@ class FullScreenActvity : AppCompatActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (!hasFocus) {
             Toast.makeText(this,"sorry you can't open notifications on quiz time ",Toast.LENGTH_SHORT).show()
-//            Toast.makeText(this,"NOTIFICATION BAR IS DOWN",Toast.LENGTH_SHORT).show()
             // NOTIFICATION BAR IS DOWN...DO STUFF
             setExpandNotificationDrawer(this,false) // close notification panel
         }
