@@ -10,19 +10,21 @@ import android.graphics.Rect
 import android.graphics.YuvImage
 import android.hardware.Camera
 import android.os.Bundle
-import android.util.Log
+import android.view.MotionEvent
 import android.view.SurfaceHolder
+import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.example.mutiplefacedetector.databinding.ActivityRealTimeDetctionBinding
+import com.google.android.material.navigation.NavigationBarPresenter
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
-import com.google.mlkit.vision.face.FaceLandmark
 import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.ObjectDetectorOptionsBase
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
@@ -30,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+
 // Import the necessary classes
 
 private const val TAG = "FaceComparison"
@@ -45,8 +48,15 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        context = this
 
+
+
+// Usage example
+        val window = window // Get the window object
+        val statusBarTouchListener = StatusBarTouchListener(window)
+        window.decorView.setOnTouchListener(statusBarTouchListener)
+
+        context = this
 
         surfaceHolder = binding.surfaceView.holder
         surfaceHolder.addCallback(this)
@@ -63,6 +73,7 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
 
 
     }
+
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         surfaceHolder = holder
@@ -160,22 +171,32 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
 
                                     val leftEyeOpenProbability = face.leftEyeOpenProbability
                                     val rightEyeOpenProbability = face.rightEyeOpenProbability
-                                    // Perform actions based on eye status probabilities
+
+                                    // Check if the left eye is open
+                                    if (leftEyeOpenProbability != null && leftEyeOpenProbability > 0.5) {
+                                        // Perform desired actions
+                                        showToast("left eye is open")
+                                    }
+
+                                    // Check if the right eye is open
+                                    if (rightEyeOpenProbability != null && rightEyeOpenProbability > 0.5) {
+                                        // Perform desired actions
+                                        showToast("right eye is open")
+                                    }
+
+                                    // Check if both eyes are open
                                     if (leftEyeOpenProbability != null && rightEyeOpenProbability != null) {
                                         if (leftEyeOpenProbability > 0.5 && rightEyeOpenProbability > 0.5) {
-                                            // Both eyes are open
                                             // Perform desired actions
-                                            runOnUiThread {
-                                                val toast = Toast.makeText(applicationContext, "Both eyes are open", Toast.LENGTH_LONG)
-                                                toast.show()
-                                            }
-                                        } else {
-                                            // At least one eye is closed
+                                            showToast("both eyes are open")
+                                        }
+                                    }
+
+                                    // Check if both eyes are closed
+                                    if (leftEyeOpenProbability != null && rightEyeOpenProbability != null) {
+                                        if (leftEyeOpenProbability <= 0.5 && rightEyeOpenProbability <= 0.5) {
                                             // Perform desired actions
-                                            runOnUiThread {
-                                                val toast = Toast.makeText(applicationContext, "At least one eye is closed", Toast.LENGTH_LONG)
-                                                toast.show()
-                                            }
+                                            showToast("both eyes are closed")
                                         }
                                     }
 
@@ -225,6 +246,12 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
         }
 
 
+    }
+
+    private fun showToast(msg: String) {
+        runOnUiThread {
+            Toast.makeText(this,msg,Toast.LENGTH_SHORT).show()
+        }
     }
 
 
@@ -295,5 +322,67 @@ class RealTimeDetction : AppCompatActivity(), SurfaceHolder.Callback, Camera.Pre
         }
 
         return true
+    }
+
+    override fun onPause() {
+        super.onPause()
+       /* if (camera != null) {
+            camera.release()
+        }*/
+    }
+
+    override fun onResume() {
+        super.onResume()
+//        disableStatusBarPullDown()
+
+    }
+   /* private fun disableStatusBarPullDown() {
+        val flags = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
+
+        window.decorView.systemUiVisibility = flags
+        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+    }*/
+
+
+    // This snippet hides the system bars.
+    private fun hideSystemUI() {
+        // Set the IMMERSIVE flag.
+        // Set the content to appear under the system bars so that the content
+        // doesn't resize when the system bars hide and show.
+        window.decorView.setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE
+        )
+    }
+
+    // This snippet shows the system bars. It does this by removing all the flags
+    // except for the ones that make the content appear under the system bars.
+    private fun showSystemUI() {
+        window.decorView.setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        )
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+        }
     }
 }

@@ -65,8 +65,8 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.0-rc01")
 
 
-
-    implementation ("androidx.activity:activity-ktx:1.4.1")
+//
+//    implementation ("androidx.activity:activity-ktx:1.4.1")
     implementation ("com.google.mlkit:barcode-scanning:17.2.0")
 
 
