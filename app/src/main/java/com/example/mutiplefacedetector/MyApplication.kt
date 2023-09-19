@@ -18,8 +18,8 @@ class MyApplication : Application()  {
     }
     override fun onCreate() {
         super.onCreate()
-        registerActivityLifecycle()
-        enableStrictMode()
+       /* registerActivityLifecycle()
+        enableStrictMode()*/
 
 
 

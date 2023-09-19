@@ -6,15 +6,12 @@
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
-<!--    notification close and open-->
-    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR"/>
-<!--usb -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" /> <!-- usb -->
     <uses-feature android:name="android.hardware.usb.host" />
+
     <uses-permission android:name="android.permission.USB_PERMISSION" />
-
-
+    <uses-permission android:name="android.permission.RECORD_AUDIO" /> <!-- notification close and open -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name=".MyApplication"
@@ -31,7 +28,7 @@
         android:theme="@style/Theme.MutipleFaceDetector"
         tools:targetApi="31">
         <activity
-            android:name=".FullScreenActvity"
+            android:name=".SoundActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,32 +36,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".RealTimeDetction"
-            android:exported="true">
-           <!-- <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>-->
-        </activity>
-
-        <meta-data
-            android:name="com.google.mlkit.vision.DEPENDENCIES"
-            android:value="face" />
-
-        <service
-            android:name=".MyAccessibilityService"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_service_config" />
-        </service>
     </application>
 
 </manifest>
