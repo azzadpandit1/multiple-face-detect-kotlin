@@ -42,11 +42,8 @@ class NoiseDetector {
                 val amplitude = calculateAmplitude(buffer, readSize!!)
                 Log.e("TAG", "start: $amplitude")
                 if (amplitude > 350) {
-//                    (context as SoundActivity).send(amplitude)
                     voiceDetectionListener.onVoiceDetected(amplitude,true,isRunning)
-                    Log.e("TAG", "start: detected $amplitude")
                 }else{
-//                    (context as SoundActivity).send(amplitude)
                     voiceDetectionListener.onVoiceDetected(amplitude,false,isRunning)
                 }
             }

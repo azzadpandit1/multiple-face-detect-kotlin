@@ -3,24 +3,30 @@ package com.example.mutiplefacedetector
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.mutiplefacedetector.databinding.ActivitySoundBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickListener  {
     private val binding by lazy { ActivitySoundBinding.inflate(layoutInflater) }
     private val noiseDetector by lazy { NoiseDetector() }
     private val context by lazy { this }
     var isRunning : Boolean = false
+
 
     companion object {
         private const val RECORD_AUDIO_PERMISSION = Manifest.permission.RECORD_AUDIO
@@ -40,6 +46,7 @@ class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickL
         init1()
 
     }
+
 
     private fun init1() {
         binding.textview.setOnClickListener(this)
@@ -109,6 +116,10 @@ class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickL
 
         }
     }
+
+    /*override fun onVoiceToText(get: String?) {
+
+    }*/
 
     override fun onClick(v: View?) {
         when(v?.id){
