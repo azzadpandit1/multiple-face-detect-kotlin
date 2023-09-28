@@ -3,29 +3,27 @@ package com.example.mutiplefacedetector
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.mutiplefacedetector.databinding.ActivitySoundBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickListener  {
     private val binding by lazy { ActivitySoundBinding.inflate(layoutInflater) }
     private val noiseDetector by lazy { NoiseDetector() }
     private val context by lazy { this }
     var isRunning : Boolean = false
+
 
 
     companion object {
@@ -44,9 +42,33 @@ class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickL
         }
 
         init1()
+/*
+        usbDeviceManager.registerUSBDeviceReceiver()
+
+        Log.w("TAG", "onCreate: usb connected"+usbDeviceManager.getConnectedUSBDevices().size )
+        binding.voiceToText.text = "onCreate: usb connected   - > "+usbDeviceManager.getConnectedUSBDevices().size.toString()
+
+        usbDeviceManager.getConnectedUSBDevices()*/
+
+        isPhoneConnected(this)
+
+
 
     }
 
+    fun isPhoneConnected(context: Context): Boolean {
+        val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
+        val deviceList = usbManager.deviceList
+        for (device: UsbDevice in deviceList.values) {
+            Log.e("TAG", "isPhoneConnected: "+device.deviceName )
+            val usbDeviceConnection = usbManager.openDevice(device)
+            if (usbDeviceConnection != null) {
+                usbDeviceConnection.close()
+                return true
+            }
+        }
+        return false
+    }
 
     private fun init1() {
         binding.textview.setOnClickListener(this)
@@ -72,8 +94,6 @@ class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickL
                 noiseDetector.start(it,this@SoundActivity)
             }
         }
-
-
     }
 
     override fun onRequestPermissionsResult(
@@ -98,15 +118,22 @@ class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickL
         noiseDetector.stop()
     }
     @SuppressLint("SetTextI18n")
-    override fun onVoiceDetected(amplitude: Double, isNiceDetected: Boolean, isRunning: Boolean) {
+    override fun onVoiceDetected(
+        amplitude: Double,
+        isNiceDetected: Boolean,
+        isRunning: Boolean,
+        typeOfVoiceDetected: String
+    ) {
         this@SoundActivity.isRunning = isRunning
         runOnUiThread {
             if (isRunning){
                 if (isNiceDetected){
-                    binding.textview.text = "running "+amplitude
+                    binding.textview.text =
+                        "running $amplitude\n Type of Voice \n$typeOfVoiceDetected"
                     binding.textview.setBackgroundColor(Color.RED)
                 }else{
-                    binding.textview.text = "running "+amplitude
+                    binding.textview.text =
+                        "running $amplitude\n Type of Voice \n$typeOfVoiceDetected"
                     binding.textview.setBackgroundColor(Color.GREEN)
                 }
             }else{
@@ -117,6 +144,9 @@ class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickL
         }
     }
 
+    override fun onVoiceToText(get: String?) {
+            }
+
     /*override fun onVoiceToText(get: String?) {
 
     }*/
@@ -125,6 +155,9 @@ class SoundActivity : AppCompatActivity(), VoiceDetectionListener ,View.OnClickL
         when(v?.id){
             R.id.textview -> {
                 if (!isRunning) startNoiseDetection() else noiseDetector.stop()
+
+                isPhoneConnected(this)
+
             }
         }
 

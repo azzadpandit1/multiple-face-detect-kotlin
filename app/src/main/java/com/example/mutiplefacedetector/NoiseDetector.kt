@@ -8,6 +8,8 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import java.io.File
+import java.io.FileOutputStream
 
 class NoiseDetector {
     private val SAMPLE_RATE = 44100
@@ -35,16 +37,38 @@ class NoiseDetector {
         isRunning = true
 
         val buffer = ShortArray(BUFFER_SIZE)
+        var sumAmplitude = 0L
 
         while (isRunning) {
             val readSize = audioRecord?.read(buffer, 0, BUFFER_SIZE)
             if (readSize != AudioRecord.ERROR_INVALID_OPERATION) {
                 val amplitude = calculateAmplitude(buffer, readSize!!)
+
+                for (i in 0 until readSize) {
+                    sumAmplitude += Math.abs(buffer[i].toLong())
+                }
+
+                val averageAmplitude = sumAmplitude / readSize
+                // Adjust these threshold values based on your requirements
+                val humanVoiceThreshold = 5000
+                val nonHumanVoiceThreshold = 2000
+                var typeOfVoiceDetected :String=""
+                if (averageAmplitude > humanVoiceThreshold){
+                    typeOfVoiceDetected = "Human Voice Detected"
+                    Log.e("detection", " Human Voice Detected ", )
+                }else if (averageAmplitude <= nonHumanVoiceThreshold){
+                    typeOfVoiceDetected = "Non-Human Voice Detected"
+                    Log.e("detection", "Non-Human Voice Detected", )
+                }else {
+                    typeOfVoiceDetected = "Unknown Voice Detected"
+                    Log.e("detection", " Unknown Voice Detected ", )
+                }
+
                 Log.e("TAG", "start: $amplitude")
                 if (amplitude > 350) {
-                    voiceDetectionListener.onVoiceDetected(amplitude,true,isRunning)
+                    voiceDetectionListener.onVoiceDetected(amplitude,true,isRunning,typeOfVoiceDetected)
                 }else{
-                    voiceDetectionListener.onVoiceDetected(amplitude,false,isRunning)
+                    voiceDetectionListener.onVoiceDetected(amplitude,false,isRunning,typeOfVoiceDetected)
                 }
             }
         }
@@ -65,6 +89,14 @@ class NoiseDetector {
         }
         val amplitude = Math.sqrt(sum / readSize)
         return amplitude
+    }
+
+    // Function to save voice in local storage
+    fun saveVoiceInLocalStorage(context: Context, voiceData: ByteArray, fileName: String) {
+        val file = File(context.filesDir, fileName)
+        val outputStream = FileOutputStream(file)
+        outputStream.write(voiceData)
+        outputStream.close()
     }
 }
 
